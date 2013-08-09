@@ -36,10 +36,20 @@ namespace GameQueryNet
 
         private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(byte[] recievedBytes)
         {
+            var resonse = new GlobalOffensiveStatsQueryResponse();
+
+            resonse.Protocol = ConvertToString(recievedBytes.Take(1).ToArray());
+          
+            
             var result2 = Encoding.ASCII.GetString(recievedBytes);
             Console.WriteLine(string.Join(Environment.NewLine, result2.Split(new[] { "\0" }, StringSplitOptions.RemoveEmptyEntries)));
 
-            return new GlobalOffensiveStatsQueryResponse();
+            return resonse;
+        }
+
+        private string ConvertToString(byte[] bytes)
+        {
+            return Encoding.UTF8.GetString(bytes);
         }
 
         public byte[] RecievedBytesPrefix(byte[] recievedBytes)

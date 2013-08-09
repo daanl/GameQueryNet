@@ -14,6 +14,8 @@ namespace Tests
 
             var request = new GlobalOffensiveStatsQueryRequest("78.143.30.16", 27015);
             var result = await handler.Query(request);
+
+            Assert.AreEqual("I", result.Protocol);
         }
     }
 }
