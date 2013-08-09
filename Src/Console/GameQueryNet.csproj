@@ -47,6 +47,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Copy of GlobalOffivensiveQueryHandler.cs" />
     <Compile Include="GlobalOffensiveStatsQueryRequest.cs" />
     <Compile Include="GlobalOffensiveStatsQueryResponse.cs" />
     <Compile Include="GlobalOffivensiveQueryHandler.cs" />
