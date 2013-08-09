@@ -1,0 +1,6 @@
+C:\Projects\GameQueryNet\bin\Debug\GameQueryNet.exe.config
+C:\Projects\GameQueryNet\bin\Debug\GameQueryNet.exe
+C:\Projects\GameQueryNet\bin\Debug\GameQueryNet.pdb
+C:\Projects\GameQueryNet\obj\Debug\GameQueryNet.csprojResolveAssemblyReference.cache
+C:\Projects\GameQueryNet\obj\Debug\GameQueryNet.exe
+C:\Projects\GameQueryNet\obj\Debug\GameQueryNet.pdb
