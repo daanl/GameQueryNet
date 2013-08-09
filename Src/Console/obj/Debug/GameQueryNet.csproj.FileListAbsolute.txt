@@ -4,3 +4,7 @@ C:\Projects\GameQueryNet\bin\Debug\GameQueryNet.pdb
 C:\Projects\GameQueryNet\obj\Debug\GameQueryNet.csprojResolveAssemblyReference.cache
 C:\Projects\GameQueryNet\obj\Debug\GameQueryNet.exe
 C:\Projects\GameQueryNet\obj\Debug\GameQueryNet.pdb
+C:\Projects\GameQueryNet\bin\Debug\ICSharpCode.SharpZipLib.dll
+C:\Projects\GameQueryNet\Src\Console\bin\Debug\GameQueryNet.exe.config
+C:\Projects\GameQueryNet\Src\Console\obj\Debug\GameQueryNet.exe
+C:\Projects\GameQueryNet\Src\Console\obj\Debug\GameQueryNet.pdb

@@ -9,14 +9,13 @@ using ICSharpCode.SharpZipLib.BZip2;
 
 namespace GameQueryNet
 {
-    class Program
+    public class GlobalOffivensiveQueryHandler
     {
-        static void Main(string[] args)
+        public GlobalOffensiveStatsQueryResponse Query(GlobalOffensiveStatsQueryRequest request)
         {
+            var byteRequest = CreateByteRequest("TSource Engine Query");
 
-            var request = CreateByteRequest("TSource Engine Query");
-
-            string hex = BitConverter.ToString(request);
+            string hex = BitConverter.ToString(byteRequest);
             hex = hex.Replace("-", " ");
 
             Console.WriteLine(hex);
@@ -25,18 +24,21 @@ namespace GameQueryNet
             {
                 udpClient.Connect("78.143.30.16", 27015);
 
-                udpClient.Send(request, request.Length);
+                udpClient.Send(byteRequest, byteRequest.Length);
 
                 var remoteIpEndPoint = new IPEndPoint(IPAddress.Any, 0);
                 var receiveBytes = udpClient.Receive(ref remoteIpEndPoint);
 
-                //var result = Encoding.UTF8.GetString(receiveBytes);
+                var total = receiveBytes.Skip(6).Take(receiveBytes.Length - 5).ToArray();
+                var result2 = Encoding.ASCII.GetString(total);
+
+                Console.WriteLine(string.Join(Environment.NewLine, result2.Split(new[] { "\0" }, StringSplitOptions.RemoveEmptyEntries)));
 
                 // see if bytes are in one packet or if in multiple
                 byte[] responseHeader = receiveBytes.Take(4).ToArray();
 
-                var simplePacketResponse = new byte[] {255, 255, 255, 255};
-                var multiPacketResponse = new byte[] {255, 255, 255, 254};
+                var simplePacketResponse = new byte[] { 255, 255, 255, 255 };
+                var multiPacketResponse = new byte[] { 255, 255, 255, 254 };
 
                 // handling of simple packet response
                 if (responseHeader.SequenceEqual(simplePacketResponse))
@@ -49,7 +51,7 @@ namespace GameQueryNet
                 {
                     var responsePacketIDBytes = receiveBytes.Skip(4).Take(4).ToArray();
                     var responsePacketID = BitConverter.ToInt32(responsePacketIDBytes, 0);
-                    var totalNumberOfPackets = BitConverter.receiveBytes.Skip(8).Take(1).ToArray();
+                    var totalNumberOfPackets = BitConverter.ToInt32(receiveBytes.Skip(8).Take(1).ToArray(), 0);
                     var packetsReceived = 1;
                     var packets = new List<byte[]>();
 
@@ -63,23 +65,14 @@ namespace GameQueryNet
                         packetsReceived++;
                     }
 
-                    // order packets
-                    var sortedPackets = from p in packets orderby p select p; 
-
-                    // 
-                    using (var ms = new MemoryStream(sortedPackets.ToArray()))
-                    {
-                        using (var reader = new BinaryReader(stream))
-                        {
-
-                        }
-                    }
-                    
                     // if msb is set on the response packet ID then it is message is compressed
                     if (GetBit(responsePacketIDBytes[0], 1))
                     {
                         var responsePayload = receiveBytes.Skip(4).Take(receiveBytes.Length).ToArray();
 
+                        byte[] buffer;
+
+                        using (var ms = new MemoryStream())
                         using (var unzip = new BZip2InputStream(ms)) //Exception occurs here
                         {
                             buffer = new byte[unzip.Length];
@@ -87,7 +80,7 @@ namespace GameQueryNet
                         }
                     }
                 }
-                // unexcepted response
+                    // unexcepted response
                 else
                 {
 
@@ -111,28 +104,9 @@ namespace GameQueryNet
             return requestBytes.ToArray();
         }
 
-        public static string ReadSteamString(BinaryReader reader)
-        {
-            // To hold the list of bytes making up the string
-            var str = new List<byte>();
-            var nextByte = reader.ReadByte();
-            
-            // Read up to and including the null terminator...
-            while (nextByte != 0)
-            {
-                // ...but don't include it in the string
-                str.Add(nextByte);
-                nextByte = reader.ReadByte();
-            }
-
-            // Interpret the result as a UTF-8 sequence      
-            return Encoding.UTF8.GetString(str.ToArray());
-        }
-
         public static bool GetBit(byte b, int bitNumber)
         {
             return (b & (1 << bitNumber)) != 0;
         }
-
     }
 }
