@@ -1,8 +1,13 @@
-﻿namespace GameQueryNet
+﻿using GameQueryNet;
+using NUnit.Framework;
+
+namespace Tests
 {
-    class Program
+    [TestFixture]
+    public class GlobalOffensiveTests
     {
-        static void Main(string[] args)
+        [Test]
+        public void CanDoSomething()
         {
             var handler = new GlobalOffivensiveQueryHandler();
 

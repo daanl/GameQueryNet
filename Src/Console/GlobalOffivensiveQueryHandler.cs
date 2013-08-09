@@ -86,6 +86,8 @@ namespace GameQueryNet
 
                 }
             }
+
+            return new GlobalOffensiveStatsQueryResponse();
         }
 
         public static byte[] CreateByteRequest(string request)
