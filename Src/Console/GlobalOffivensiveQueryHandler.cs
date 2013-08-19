@@ -34,42 +34,123 @@ namespace GameQueryNet
             return response;
         }
 
-        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(byte[] recievedBytes)
+        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(IList<byte> recievedBytes)
         {
-            var resonse = new GlobalOffensiveStatsQueryResponse();
+            var response = new GlobalOffensiveStatsQueryResponse();
 
-            resonse.Protocol = ConvertToString(recievedBytes.Take(1).ToArray());
-          
-            
-            var result2 = Encoding.ASCII.GetString(recievedBytes);
-            Console.WriteLine(string.Join(Environment.NewLine, result2.Split(new[] { "\0" }, StringSplitOptions.RemoveEmptyEntries)));
+            response.Raw = ExtractString<string>(ref recievedBytes, false);
+            response.Protocol = ExtractByte<string>(ref recievedBytes);
+            response.Name = ExtractString<string>(ref recievedBytes);
+            response.Map = ExtractString<string>(ref recievedBytes);
+            response.Folder = ExtractString<string>(ref recievedBytes);
+            response.Game = ExtractString<string>(ref recievedBytes);
+            response.Id = ExtractShort<int>(ref recievedBytes);
+            response.Players = ExtractByte<byte>(ref recievedBytes);
 
-            return resonse;
+            return response;
         }
 
-        private string ConvertToString(byte[] bytes)
+        private int GetIndexOfString(IList<byte> bytes)
         {
-            return Encoding.UTF8.GetString(bytes);
+            return bytes.ToList().IndexOf(0x00);
         }
 
-        public byte[] RecievedBytesPrefix(byte[] recievedBytes)
+        private T ExtractString<T>(ref IList<byte> bytes, bool removedUsed = true)
         {
-            return recievedBytes.Take(4).ToArray();
+            var index = GetIndexOfString(bytes);
+            var result = bytes.Take(index).ToArray();
+
+            if (removedUsed)
+            {
+                bytes = bytes.Skip(index + 1).ToArray();
+            }
+
+            return ConvertToType<T>(result);
         }
 
-        public byte[] RecievedBytesWithOutPrefixAndSuffix(byte[] recievedBytes)
+        private T ExtractShort<T>(ref IList<byte> bytes)
         {
-            return recievedBytes.Skip(4).Take(recievedBytes.Length - 5).ToArray();
+            var result = bytes.Take(2).ToArray();
+            bytes = bytes.Skip(2).ToArray();
+
+            return ConvertToType<T>(result);
         }
 
-        private bool IsSimpleResponse(byte[] recievedBytes)
+        private T ExtractByte<T>(ref IList<byte> bytes)
+        {
+            var result = bytes.First();
+            bytes = bytes.Skip(1).ToArray();
+
+            return ConvertToType<T>(new[] {result});
+        }
+
+        private T ConvertToType<T>(byte[] value)
+        {
+            var type = typeof (T);
+
+            if (type == typeof(string))
+            {
+                object result = Encoding.UTF8.GetString(value);
+                return (T) result;
+            }
+
+            if (type == typeof (int))
+            {
+                object result = null;
+
+                if (value.Length == 2)
+                {
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        Array.Reverse(value);
+                    }
+
+                    result = Convert.ToInt32(BitConverter.ToInt16(value, 0));
+                }
+                else
+                {
+                    if (BitConverter.IsLittleEndian)
+                    {
+                        Array.Reverse(value);
+                    }
+                 
+                    result = Convert.ToInt32(BitConverter.ToInt32(value, 0));
+                }
+               
+                return (T)result;
+            }
+
+            return (T)Convert.ChangeType(value, typeof(T));
+        }
+
+        private int ConvertToInt(byte[] bytes)
+        {
+            if (BitConverter.IsLittleEndian)
+            {
+                Array.Reverse(bytes);
+            }
+
+            return BitConverter.ToInt16(bytes, 0);
+        }
+
+        public List<byte> RecievedBytesPrefix(byte[] recievedBytes)
+        {
+            return recievedBytes.Take(4).ToList();
+        }
+
+        public List<byte> RecievedBytesWithOutPrefixAndSuffix(byte[] recievedBytes)
+        {
+            return recievedBytes.Skip(4).Take(recievedBytes.Length - 5).ToList();
+        }
+
+        private bool IsSimpleResponse(IEnumerable<byte> recievedBytes)
         {
             var simpleResponsePrefix = new byte[] { 255, 255, 255, 255 };
 
             return recievedBytes.Take(4).ToArray().SequenceEqual(simpleResponsePrefix);
         }
 
-        private bool IsMutliResponse(byte[] recievedBytes)
+        private bool IsMutliResponse(IEnumerable<byte> recievedBytes)
         {
             var multiResponsePrefix = new byte[] { 255, 255, 255, 254 };
 
@@ -97,4 +178,5 @@ namespace GameQueryNet
             return (b & (1 << bitNumber)) != 0;
         }
     }
+
 }

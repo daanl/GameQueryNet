@@ -16,6 +16,10 @@ namespace Tests
             var result = await handler.Query(request);
 
             Assert.AreEqual("I", result.Protocol);
+            Assert.AreEqual("Jail (DE) Knastrevolution - by FatalGamerZ-Team", result.Name);
+            Assert.AreEqual("csgo", result.Folder);
+            Assert.AreEqual("Counter-Strike: Global Offensive", result.Game);
+            Assert.AreEqual(-9726, result.Id);
         }
     }
 }
