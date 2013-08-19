@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2012
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameQueryNet", "Src\Console\GameQueryNet.csproj", "{D113B45B-0993-439E-BA39-F68F1C1E66B2}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameQueryNet", "Src\GameQueryNet\GameQueryNet.csproj", "{D113B45B-0993-439E-BA39-F68F1C1E66B2}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Src\Tests\Tests.csproj", "{805C90DD-6005-48E5-B22F-739980862700}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameQuery.Console", "Src\GameQueryNet.Console\GameQuery.Console.csproj", "{82564527-0E99-4C0A-AE94-C8FE0F0649CA}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameQueryTest", "Src\GameQueryTest\GameQueryTest.csproj", "{82564527-0E99-4C0A-AE94-C8FE0F0649CA}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameQueryNet.Tests", "Src\GameQueryNet.Tests\GameQueryNet.Tests.csproj", "{805C90DD-6005-48E5-B22F-739980862700}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,14 +17,14 @@ Global
 		{D113B45B-0993-439E-BA39-F68F1C1E66B2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D113B45B-0993-439E-BA39-F68F1C1E66B2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D113B45B-0993-439E-BA39-F68F1C1E66B2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{805C90DD-6005-48E5-B22F-739980862700}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{805C90DD-6005-48E5-B22F-739980862700}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{805C90DD-6005-48E5-B22F-739980862700}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{805C90DD-6005-48E5-B22F-739980862700}.Release|Any CPU.Build.0 = Release|Any CPU
 		{82564527-0E99-4C0A-AE94-C8FE0F0649CA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{82564527-0E99-4C0A-AE94-C8FE0F0649CA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{82564527-0E99-4C0A-AE94-C8FE0F0649CA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{82564527-0E99-4C0A-AE94-C8FE0F0649CA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{805C90DD-6005-48E5-B22F-739980862700}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{805C90DD-6005-48E5-B22F-739980862700}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{805C90DD-6005-48E5-B22F-739980862700}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{805C90DD-6005-48E5-B22F-739980862700}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

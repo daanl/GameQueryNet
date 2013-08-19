@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using GameQueryNet;
 using NUnit.Framework;
 
-namespace Tests
+namespace GameQueryNet.Tests
 {
     [TestFixture]
     public class GlobalOffensiveTests

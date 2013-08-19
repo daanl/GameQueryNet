@@ -1,18 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using GameQueryNet;
+﻿using System.Threading.Tasks;
 
-namespace GameQueryTest
+namespace GameQueryNet.Console
 {
     class Program
     {
         static void Main(string[] args)
         {
             CanDoSomething();
-            Console.Read();
+            System.Console.Read();
         }
 
         private static async Task CanDoSomething()
@@ -22,7 +17,7 @@ namespace GameQueryTest
             var request = new GlobalOffensiveStatsQueryRequest("78.143.30.16", 27015);
             var result = await handler.Query(request);
 
-            Console.WriteLine(result.Protocol);
+            System.Console.WriteLine(result.Protocol);
         }
     }
 }
