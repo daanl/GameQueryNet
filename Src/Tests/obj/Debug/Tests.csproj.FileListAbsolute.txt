@@ -1,9 +1,0 @@
-C:\Projects\GameQueryNet\Src\Tests\bin\Debug\Tests.dll
-C:\Projects\GameQueryNet\Src\Tests\bin\Debug\Tests.pdb
-C:\Projects\GameQueryNet\Src\Tests\bin\Debug\GameQueryNet.dll
-C:\Projects\GameQueryNet\Src\Tests\bin\Debug\nunit.framework.dll
-C:\Projects\GameQueryNet\Src\Tests\bin\Debug\GameQueryNet.pdb
-C:\Projects\GameQueryNet\Src\Tests\bin\Debug\nunit.framework.xml
-C:\Projects\GameQueryNet\Src\Tests\obj\Debug\Tests.csprojResolveAssemblyReference.cache
-C:\Projects\GameQueryNet\Src\Tests\obj\Debug\Tests.dll
-C:\Projects\GameQueryNet\Src\Tests\obj\Debug\Tests.pdb

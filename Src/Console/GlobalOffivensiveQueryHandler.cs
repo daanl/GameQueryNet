@@ -19,33 +19,46 @@ namespace GameQueryNet
                 udpClient.Connect(request.IpAddress, request.Port);
                 udpClient.Send(byteRequest, byteRequest.Length);
                 
-                var recieveResult = await udpClient.ReceiveAsync();
-                var recievedBytes = recieveResult.Buffer;
+                var receiveResult = await udpClient.ReceiveAsync();
+                var receivedBytes = receiveResult.Buffer;
 
-                var prefixBytes = RecievedBytesPrefix(recievedBytes);
-                var responseBodyBytes = RecievedBytesWithOutPrefixAndSuffix(recievedBytes);
+                var prefixBytes = RecievedBytesPrefix(receivedBytes);
+                var responseBodyBytes = RecievedBytesWithOutPrefixAndSuffix(receivedBytes);
 
+                /* Deal with simple response */
                 if (IsSimpleResponse(prefixBytes))
                 {
                     response = HandleSimpleResponse(responseBodyBytes);
+                }
+                /* Deal with multi packet response */
+                else if (IsMultiResponse(prefixBytes))
+                {
+                    response = HandleMultiResponse(udpClient, receivedBytes);
                 }
             }
 
             return response;
         }
 
-        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(IList<byte> recievedBytes)
+        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(IList<byte> receivedBytes)
         {
             var response = new GlobalOffensiveStatsQueryResponse();
 
-            response.Raw = ExtractString<string>(ref recievedBytes, false);
-            response.Protocol = ExtractByte<string>(ref recievedBytes);
-            response.Name = ExtractString<string>(ref recievedBytes);
-            response.Map = ExtractString<string>(ref recievedBytes);
-            response.Folder = ExtractString<string>(ref recievedBytes);
-            response.Game = ExtractString<string>(ref recievedBytes);
-            response.Id = ExtractShort<int>(ref recievedBytes);
-            response.Players = ExtractByte<byte>(ref recievedBytes);
+            response.Raw = ExtractString<string>(ref receivedBytes, false);
+            response.Protocol = ExtractByte<string>(ref receivedBytes);
+            response.Name = ExtractString<string>(ref receivedBytes);
+            response.Map = ExtractString<string>(ref receivedBytes);
+            response.Folder = ExtractString<string>(ref receivedBytes);
+            response.Game = ExtractString<string>(ref receivedBytes);
+            response.Id = ExtractShort<int>(ref receivedBytes);
+            response.Players = ExtractByte<int>(ref receivedBytes);
+
+            return response;
+        }
+
+		private GlobalOffensiveStatsQueryResponse HandleMultiResponse(UdpClient updClient, IList<byte> initialPacketBody)
+        {
+            var response = new GlobalOffensiveStatsQueryResponse();
 
             return response;
         }
@@ -98,7 +111,11 @@ namespace GameQueryNet
             {
                 object result = null;
 
-                if (value.Length == 2)
+                if (value.Length == 1)
+                {
+                    result = (int) value[0];
+                }
+                else if (value.Length == 2)
                 {
                     if (BitConverter.IsLittleEndian)
                     {
@@ -150,11 +167,11 @@ namespace GameQueryNet
             return recievedBytes.Take(4).ToArray().SequenceEqual(simpleResponsePrefix);
         }
 
-        private bool IsMutliResponse(IEnumerable<byte> recievedBytes)
+        private bool IsMultiResponse(IList<byte> receivedBytes)
         {
             var multiResponsePrefix = new byte[] { 255, 255, 255, 254 };
 
-            return recievedBytes.Take(4).ToArray().SequenceEqual(multiResponsePrefix);
+            return receivedBytes.Take(4).ToArray().SequenceEqual(multiResponsePrefix);
         }
 
         public static byte[] CreateByteRequest(string request)
