@@ -19,32 +19,46 @@ namespace GameQueryNet
                 udpClient.Connect(request.IpAddress, request.Port);
                 udpClient.Send(byteRequest, byteRequest.Length);
                 
-                var recieveResult = await udpClient.ReceiveAsync();
-                var recievedBytes = recieveResult.Buffer;
+                var receiveResult = await udpClient.ReceiveAsync();
+                var receivedBytes = receiveResult.Buffer;
 
-                var prefixBytes = RecievedBytesPrefix(recievedBytes);
-                var responseBodyBytes = RecievedBytesWithOutPrefixAndSuffix(recievedBytes);
+                var headerBytes = GetHeader(receivedBytes);
+                var responseBodyBytes = GetBody(receivedBytes);
 
-                if (IsSimpleResponse(prefixBytes))
+                /* Deal with simple response */
+                if (IsSimpleResponse(headerBytes))
                 {
                     response = HandleSimpleResponse(responseBodyBytes);
+                }
+                /* Deal with multi packet response */
+                else if (IsMultiResponse(headerBytes))
+                {
+                    response = HandleMultiResponse(udpClient, responseBodyBytes);
                 }
             }
 
             return response;
         }
 
-        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(byte[] recievedBytes)
+        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(byte[] receivedBytes)
         {
-            var resonse = new GlobalOffensiveStatsQueryResponse();
+            var response = new GlobalOffensiveStatsQueryResponse();
 
-            resonse.Protocol = ConvertToString(recievedBytes.Take(1).ToArray());
-          
+            response.Protocol = ConvertToString(receivedBytes.Take(1).ToArray());
             
-            var result2 = Encoding.ASCII.GetString(recievedBytes);
+            var result2 = Encoding.ASCII.GetString(receivedBytes);
             Console.WriteLine(string.Join(Environment.NewLine, result2.Split(new[] { "\0" }, StringSplitOptions.RemoveEmptyEntries)));
 
-            return resonse;
+            return response;
+        }
+
+        private GlobalOffensiveStatsQueryResponse HandleMultiResponse(UdpClient updClient, byte[] initialPacketBody)
+        {
+            var response = new GlobalOffensiveStatsQueryResponse();
+
+
+
+            return response;
         }
 
         private string ConvertToString(byte[] bytes)
@@ -52,28 +66,28 @@ namespace GameQueryNet
             return Encoding.UTF8.GetString(bytes);
         }
 
-        public byte[] RecievedBytesPrefix(byte[] recievedBytes)
+        public byte[] GetHeader(byte[] receivedBytes)
         {
-            return recievedBytes.Take(4).ToArray();
+            return receivedBytes.Take(4).ToArray();
         }
 
-        public byte[] RecievedBytesWithOutPrefixAndSuffix(byte[] recievedBytes)
+        public byte[] GetBody(byte[] receivedBytes)
         {
-            return recievedBytes.Skip(4).Take(recievedBytes.Length - 5).ToArray();
+            return receivedBytes.Skip(4).Take(receivedBytes.Length - 5).ToArray();
         }
 
-        private bool IsSimpleResponse(byte[] recievedBytes)
+        private bool IsSimpleResponse(byte[] receivedBytes)
         {
             var simpleResponsePrefix = new byte[] { 255, 255, 255, 255 };
 
-            return recievedBytes.Take(4).ToArray().SequenceEqual(simpleResponsePrefix);
+            return receivedBytes.Take(4).ToArray().SequenceEqual(simpleResponsePrefix);
         }
 
-        private bool IsMutliResponse(byte[] recievedBytes)
+        private bool IsMultiResponse(byte[] receivedBytes)
         {
             var multiResponsePrefix = new byte[] { 255, 255, 255, 254 };
 
-            return recievedBytes.Take(4).ToArray().SequenceEqual(multiResponsePrefix);
+            return receivedBytes.Take(4).ToArray().SequenceEqual(multiResponsePrefix);
         }
 
         public static byte[] CreateByteRequest(string request)
