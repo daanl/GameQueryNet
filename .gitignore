@@ -104,3 +104,5 @@ thumbs.db
 
 /packages
 /.localhistory
+bin
+obj
