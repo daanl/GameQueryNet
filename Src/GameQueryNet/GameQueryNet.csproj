@@ -53,6 +53,7 @@
     <Compile Include="GlobalOffensiveStatsQueryResponse.cs" />
     <Compile Include="GlobalOffivensiveQueryHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SteamPacket.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

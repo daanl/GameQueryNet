@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 namespace GameQueryNet
 {
+    /* https://developer.valvesoftware.com/wiki/Server_Queries */
     public class GlobalOffivensiveQueryHandler
     {
         public async Task<GlobalOffensiveStatsQueryResponse> Query(GlobalOffensiveStatsQueryRequest request)
@@ -22,156 +23,34 @@ namespace GameQueryNet
                 var receiveResult = await udpClient.ReceiveAsync();
                 var receivedBytes = receiveResult.Buffer;
 
-                var prefixBytes = RecievedBytesPrefix(receivedBytes);
-                var responseBodyBytes = RecievedBytesWithOutPrefixAndSuffix(receivedBytes);
+                var firstPacket = new SteamPacket(receivedBytes);
 
                 /* Deal with simple response */
-                if (IsSimpleResponse(prefixBytes))
+                if (firstPacket.Header == PacketType.Simple)
                 {
-                    response = HandleSimpleResponse(responseBodyBytes);
+                    var simple = new SimpleResponseFormatPacket(firstPacket);
+                    response = HandleSimpleResponse(simple);
                 }
+
                 /* Deal with multi packet response */
-                else if (IsMultiResponse(prefixBytes))
+                else if (firstPacket.Header == PacketType.Multi)
                 {
-                    response = HandleMultiResponse(udpClient, receivedBytes);
-                }
-            }
+                    var multi = new MultiResponseFormatPacket(firstPacket);
+                    var multiPacketResponse = HandleMultiPacketResponse(udpClient, multi);
 
-            return response;
-        }
-
-        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(IList<byte> receivedBytes)
-        {
-            var response = new GlobalOffensiveStatsQueryResponse();
-
-            response.Raw = ExtractString<string>(ref receivedBytes, false);
-            response.Protocol = ExtractByte<string>(ref receivedBytes);
-            response.Name = ExtractString<string>(ref receivedBytes);
-            response.Map = ExtractString<string>(ref receivedBytes);
-            response.Folder = ExtractString<string>(ref receivedBytes);
-            response.Game = ExtractString<string>(ref receivedBytes);
-            response.Id = ExtractShort<int>(ref receivedBytes);
-            response.Players = ExtractByte<int>(ref receivedBytes);
-
-            return response;
-        }
-
-		private GlobalOffensiveStatsQueryResponse HandleMultiResponse(UdpClient updClient, IList<byte> initialPacketBody)
-        {
-            var response = new GlobalOffensiveStatsQueryResponse();
-
-            return response;
-        }
-
-        private int GetIndexOfString(IList<byte> bytes)
-        {
-            return bytes.ToList().IndexOf(0x00);
-        }
-
-        private T ExtractString<T>(ref IList<byte> bytes, bool removedUsed = true)
-        {
-            var index = GetIndexOfString(bytes);
-            var result = bytes.Take(index).ToArray();
-
-            if (removedUsed)
-            {
-                bytes = bytes.Skip(index + 1).ToArray();
-            }
-
-            return ConvertToType<T>(result);
-        }
-
-        private T ExtractShort<T>(ref IList<byte> bytes)
-        {
-            var result = bytes.Take(2).ToArray();
-            bytes = bytes.Skip(2).ToArray();
-
-            return ConvertToType<T>(result);
-        }
-
-        private T ExtractByte<T>(ref IList<byte> bytes)
-        {
-            var result = bytes.First();
-            bytes = bytes.Skip(1).ToArray();
-
-            return ConvertToType<T>(new[] {result});
-        }
-
-        private T ConvertToType<T>(byte[] value)
-        {
-            var type = typeof (T);
-
-            if (type == typeof(string))
-            {
-                object result = Encoding.UTF8.GetString(value);
-                return (T) result;
-            }
-
-            if (type == typeof (int))
-            {
-                object result = null;
-
-                if (value.Length == 1)
-                {
-                    result = (int) value[0];
-                }
-                else if (value.Length == 2)
-                {
-                    if (BitConverter.IsLittleEndian)
+                    if (multiPacketResponse.IsCompleted)
                     {
-                        Array.Reverse(value);
+                        response = multiPacketResponse.Result;
                     }
 
-                    result = Convert.ToInt32(BitConverter.ToInt16(value, 0));
-                }
-                else
-                {
-                    if (BitConverter.IsLittleEndian)
+                    else
                     {
-                        Array.Reverse(value);
+                        throw new Exception("Unknown packet type");
                     }
-                 
-                    result = Convert.ToInt32(BitConverter.ToInt32(value, 0));
                 }
-               
-                return (T)result;
             }
 
-            return (T)Convert.ChangeType(value, typeof(T));
-        }
-
-        private int ConvertToInt(byte[] bytes)
-        {
-            if (BitConverter.IsLittleEndian)
-            {
-                Array.Reverse(bytes);
-            }
-
-            return BitConverter.ToInt16(bytes, 0);
-        }
-
-        public List<byte> RecievedBytesPrefix(byte[] recievedBytes)
-        {
-            return recievedBytes.Take(4).ToList();
-        }
-
-        public List<byte> RecievedBytesWithOutPrefixAndSuffix(byte[] recievedBytes)
-        {
-            return recievedBytes.Skip(4).Take(recievedBytes.Length - 5).ToList();
-        }
-
-        private bool IsSimpleResponse(IEnumerable<byte> recievedBytes)
-        {
-            var simpleResponsePrefix = new byte[] { 255, 255, 255, 255 };
-
-            return recievedBytes.Take(4).ToArray().SequenceEqual(simpleResponsePrefix);
-        }
-
-        private bool IsMultiResponse(IList<byte> receivedBytes)
-        {
-            var multiResponsePrefix = new byte[] { 255, 255, 255, 254 };
-
-            return receivedBytes.Take(4).ToArray().SequenceEqual(multiResponsePrefix);
+            return response;
         }
 
         public static byte[] CreateByteRequest(string request)
@@ -190,10 +69,48 @@ namespace GameQueryNet
             return requestBytes.ToArray();
         }
 
-        public static bool GetBit(byte b, int bitNumber)
+        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(SimpleResponseFormatPacket steamPacket)
         {
-            return (b & (1 << bitNumber)) != 0;
+            var response = new GlobalOffensiveStatsQueryResponse();
+
+            //response.Raw = ExtractString<string>(ref receivedBytes, false);
+            response.Raw = steamPacket.RawPacket;
+            var payload = steamPacket.Payload;
+
+            response.Protocol = steamPacket.ExtractByte<string>(ref payload);
+            response.Name = steamPacket.ExtractString<string>(ref payload);
+            response.Map = steamPacket.ExtractString<string>(ref payload);
+            response.Folder = steamPacket.ExtractString<string>(ref payload);
+            response.Game = steamPacket.ExtractString<string>(ref payload);
+            response.Id = steamPacket.ExtractShort<int>(ref payload);
+            response.Players = steamPacket.ExtractByte<int>(ref payload);
+
+            return response;
         }
+
+        private async Task<GlobalOffensiveStatsQueryResponse> HandleMultiPacketResponse(UdpClient updClient, MultiResponseFormatPacket initialPacket)
+        {
+            var response = new GlobalOffensiveStatsQueryResponse();
+            
+            int numberOfReceivedPackets = 1;
+            var receivedPackets = new List<UdpReceiveResult>();
+
+            while (numberOfReceivedPackets <= initialPacket.Total)
+            {
+                var udpReceiveResult = await updClient.ReceiveAsync();
+                receivedPackets.Add(udpReceiveResult);
+            }
+
+            /* TODO: order the packets */
+
+            /* TODO: decompress if necessary */
+
+            /* TODO: read out the data */
+
+            return response;
+        }
+
+        
     }
 
 }

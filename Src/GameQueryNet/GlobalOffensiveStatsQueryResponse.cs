@@ -8,7 +8,7 @@
         public string Folder { get; internal set; }
         public string Game { get; internal set; }
         public int Id { get; internal set; }
-        public string Raw { get; internal set; }
+        public byte[] Raw { get; internal set; }
         public int Players { get; set; }
     }
 }
