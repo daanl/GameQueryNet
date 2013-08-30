@@ -52,8 +52,11 @@
     <Compile Include="GlobalOffensiveStatsQueryRequest.cs" />
     <Compile Include="GlobalOffensiveStatsQueryResponse.cs" />
     <Compile Include="GlobalOffivensiveQueryHandler.cs" />
+    <Compile Include="Steam\SteamMultiResponseFormatPacket.cs" />
+    <Compile Include="Steam\SteamSimpleResponseFormatPacket.cs" />
+    <Compile Include="Steam\SteamPacketType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SteamPacket.cs" />
+    <Compile Include="Steam\SteamPacket.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
