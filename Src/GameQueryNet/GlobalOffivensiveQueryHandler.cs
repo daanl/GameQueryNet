@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using GameQueryNet.Steam;
 
 namespace GameQueryNet
 {
@@ -25,24 +25,23 @@ namespace GameQueryNet
 
                 var firstPacket = new SteamPacket(receivedBytes);
 
-                /* Deal with simple response */
-                if (firstPacket.Header == PacketType.Simple)
+                // Deal with simple response
+                if (firstPacket.Header == SteamPacketType.Simple)
                 {
-                    var simple = new SimpleResponseFormatPacket(firstPacket);
+                    var simple = new SteamSimpleResponseFormatPacket(firstPacket);
                     response = HandleSimpleResponse(simple);
                 }
 
-                /* Deal with multi packet response */
-                else if (firstPacket.Header == PacketType.Multi)
+                // Deal with multi packet response
+                else if (firstPacket.Header == SteamPacketType.Multi)
                 {
-                    var multi = new MultiResponseFormatPacket(firstPacket);
+                    var multi = new SteamMultiResponseFormatPacket(firstPacket);
                     var multiPacketResponse = HandleMultiPacketResponse(udpClient, multi);
 
                     if (multiPacketResponse.IsCompleted)
                     {
                         response = multiPacketResponse.Result;
                     }
-
                     else
                     {
                         throw new Exception("Unknown packet type");
@@ -69,7 +68,7 @@ namespace GameQueryNet
             return requestBytes.ToArray();
         }
 
-        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(SimpleResponseFormatPacket steamPacket)
+        private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(SteamSimpleResponseFormatPacket steamPacket)
         {
             var response = new GlobalOffensiveStatsQueryResponse();
 
@@ -88,7 +87,7 @@ namespace GameQueryNet
             return response;
         }
 
-        private async Task<GlobalOffensiveStatsQueryResponse> HandleMultiPacketResponse(UdpClient updClient, MultiResponseFormatPacket initialPacket)
+        private async Task<GlobalOffensiveStatsQueryResponse> HandleMultiPacketResponse(UdpClient updClient, SteamMultiResponseFormatPacket initialPacket)
         {
             var response = new GlobalOffensiveStatsQueryResponse();
             
@@ -109,8 +108,5 @@ namespace GameQueryNet
 
             return response;
         }
-
-        
     }
-
 }
