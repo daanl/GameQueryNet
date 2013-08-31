@@ -18,10 +18,10 @@ namespace GameQueryNet.Tests
             Console.WriteLine(result.Name);
 
             Assert.AreEqual("I", result.Protocol);
-            Assert.AreEqual("Knastrevolution -> 85.131.174.61:27015", result.Name);
+            Assert.AreEqual("Jail (DE) Knastrevolution | #1 | by FatalGamerZ.de", result.Name);
             Assert.AreEqual("csgo", result.Folder);
             Assert.AreEqual("Counter-Strike: Global Offensive", result.Game);
-            Assert.AreEqual(-9726, result.Id);
+            Assert.AreEqual(730, result.Id);
         }
     }
 }

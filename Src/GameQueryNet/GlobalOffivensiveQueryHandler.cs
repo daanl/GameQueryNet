@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
@@ -7,7 +6,9 @@ using GameQueryNet.Steam;
 
 namespace GameQueryNet
 {
-    /* https://developer.valvesoftware.com/wiki/Server_Queries */
+    /// <summary>
+    /// https://developer.valvesoftware.com/wiki/Server_Queries
+    /// </summary>
     public class GlobalOffivensiveQueryHandler
     {
         public async Task<GlobalOffensiveStatsQueryResponse> Query(GlobalOffensiveStatsQueryRequest request)
@@ -23,29 +24,15 @@ namespace GameQueryNet
                 var receiveResult = await udpClient.ReceiveAsync();
                 var receivedBytes = receiveResult.Buffer;
 
-                var firstPacket = new SteamPacket(receivedBytes);
+                var steamPacket = SteamPacket.Create(receivedBytes);
 
-                /* Deal with simple response */
-                if (firstPacket.Header == SteamPacketType.Simple)
+                if (steamPacket is SteamSimpleResponseFormatPacket)
                 {
-                    var simple = new SteamSimpleResponseFormatPacket(firstPacket);
-                    response = HandleSimpleResponse(simple);
+                    response = HandleSimpleResponse(steamPacket as SteamSimpleResponseFormatPacket);
                 }
-
-                /* Deal with multi packet response */
-                else if (firstPacket.Header == SteamPacketType.Multi)
+                else if (steamPacket is SteamMultiResponseFormatPacket)
                 {
-                    var multi = new SteamMultiResponseFormatPacket(firstPacket);
-                    var multiPacketResponse = HandleMultiPacketResponse(udpClient, multi);
-
-                    if (multiPacketResponse.IsCompleted)
-                    {
-                        response = multiPacketResponse.Result;
-                    }
-                    else
-                    {
-                        throw new Exception("Unknown packet type");
-                    }
+                    response = await HandleMultiPacketResponse(udpClient, steamPacket as SteamMultiResponseFormatPacket);
                 }
             }
 
@@ -78,17 +65,16 @@ namespace GameQueryNet
             var response = new GlobalOffensiveStatsQueryResponse();
 
             response.Raw = steamPacket.RawPacket;
-            var payload = steamPacket.Payload;
+            var reader = steamPacket.Reader;
 
-            var br = new ByteReader();
-
-            response.Protocol = br.ExtractByte<string>(ref payload);
-            response.Name = br.ExtractString<string>(ref payload);
-            response.Map = br.ExtractString<string>(ref payload);
-            response.Folder = br.ExtractString<string>(ref payload);
-            response.Game = br.ExtractString<string>(ref payload);
-            response.Id = br.ExtractShort<int>(ref payload);
-            response.Players = br.ExtractByte<int>(ref payload);
+            response.Header = reader.ExtractLong<int>();
+            response.Protocol = reader.ExtractByte<string>();
+            response.Name = reader.ExtractString<string>();
+            response.Map = reader.ExtractString<string>();
+            response.Folder = reader.ExtractString<string>();
+            response.Game = reader.ExtractString<string>();
+            response.Id = reader.ExtractShort<int>();
+            response.Players = reader.ExtractByte<int>();
 
             return response;
         }

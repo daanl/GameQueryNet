@@ -10,5 +10,6 @@
         public int Id { get; internal set; }
         public byte[] Raw { get; internal set; }
         public int Players { get; internal set; }
+        public int Header { get; internal set; }
     }
 }

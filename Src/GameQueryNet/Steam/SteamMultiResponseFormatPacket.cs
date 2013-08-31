@@ -11,27 +11,12 @@ namespace GameQueryNet.Steam
     {
         public SteamMultiResponseFormatPacket(byte[] rawPacket) : base(rawPacket)
         {
-            if (Header != SteamPacketType.Multi)
-            {
-                throw new Exception("Not a multi-package response");
-            }
-            var br = new ByteReader();
-            
-            var _raw = rawPacket.ToList<byte>() as IList<byte>;
-            var IsCompressed = br.GetMostSignificantBit(_raw.ToArray());
-            ID = br.ExtractLong<int>(ref _raw);
-            Total = br.ExtractByte<int>(ref _raw);
-            Number = br.ExtractByte<int>(ref _raw);
-            Size = br.ExtractShort<short>(ref _raw);
-        }
-
-        /// <summary>
-        /// Copy constructor (just defers to base class)
-        /// </summary>
-        /// <param name="firstPacket"></param>
-        public SteamMultiResponseFormatPacket(SteamPacket firstPacket) : base(firstPacket)
-        {
-
+            IList<byte> _raw = rawPacket.ToList();
+            var isCompressed = Reader.GetMostSignificantBit(_raw.ToArray());
+            Id = Reader.ExtractLong<int>();
+            Total = Reader.ExtractByte<int>();
+            Number = Reader.ExtractByte<int>();
+            Size = Reader.ExtractShort<short>();
         }
 
         /// <summary>
@@ -42,7 +27,7 @@ namespace GameQueryNet.Steam
         /// <summary>
         /// Unique number assigned by server per answer.
         /// </summary>
-        public int ID { get; private set; }
+        public int Id { get; private set; }
 
         /// <summary>
         /// The total number of packets in the response.

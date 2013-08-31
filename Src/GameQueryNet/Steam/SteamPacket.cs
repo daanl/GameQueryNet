@@ -1,38 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace GameQueryNet.Steam
 {
     /// <summary>
     /// SteamPacket class, mainly created for multiple packet response
     /// </summary>
-    public class SteamPacket
+    public abstract class SteamPacket
     {
         /// <summary>
         /// Constructor
         /// </summary>
         /// <param name="rawPacket"></param>
-        public SteamPacket(byte[] rawPacket)
+        protected SteamPacket(byte[] rawPacket)
         {
             RawPacket = rawPacket;
-            Header = DetermineResponse(rawPacket);
+            Reader = new SteamByteReader(rawPacket);
         }
 
-        /// <summary>
-        /// Copy constructor
-        /// </summary>
-        /// <param name="steamPacket"></param>
-        protected SteamPacket(SteamPacket steamPacket)
-        {
-            RawPacket = steamPacket.RawPacket;
-            Header = steamPacket.Header;
-            Payload = steamPacket.Payload;
-        }
-
+        public SteamByteReader Reader { get; private set; }
         public byte[] RawPacket { get; private set; }
-        public SteamPacketType Header { get; private set; }
         public IList<byte> Payload { get; protected set; }
 
         public IList<byte> ReceivedBytesPrefix(byte[] recievedBytes)
@@ -45,7 +33,7 @@ namespace GameQueryNet.Steam
             return recievedBytes.Skip(4).Take(recievedBytes.Length - 5).ToList();
         }
 
-        public SteamPacketType DetermineResponse(IList<byte> recievedBytes)
+        private static SteamPacketType DetermineResponse(IList<byte> recievedBytes)
         {
             var simpleResponsePrefix = new byte[] { 255, 255, 255, 255 };
             var multiResponsePrefix = new byte[] { 255, 255, 255, 254 };
@@ -60,7 +48,22 @@ namespace GameQueryNet.Steam
                 return SteamPacketType.Multi;
             }
 
-            return SteamPacketType.Unknown;
+             throw new Exception("Invalid response");
+        }
+
+        public static SteamPacket Create(byte[] receivedBytes)
+        {
+            var type = DetermineResponse(receivedBytes);
+
+            switch (type)
+            {
+                case SteamPacketType.Simple:
+                    return new SteamSimpleResponseFormatPacket(receivedBytes);
+                case SteamPacketType.Multi:
+                    return new SteamMultiResponseFormatPacket(receivedBytes);
+                default:
+                    throw new Exception("Invalid response");
+            }
         }
     }
 }

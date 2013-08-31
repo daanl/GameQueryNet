@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace GameQueryNet.Console
 {
@@ -6,9 +8,7 @@ namespace GameQueryNet.Console
     {
         static void Main(string[] args)
         {
-            while (!CanDoSomething().IsCompleted)
-            { ; }
-            System.Console.Read();
+            CanDoSomething().Wait();
         }
 
         private static async Task CanDoSomething()
