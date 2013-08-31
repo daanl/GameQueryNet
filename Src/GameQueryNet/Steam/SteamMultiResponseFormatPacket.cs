@@ -9,23 +9,26 @@ namespace GameQueryNet.Steam
     /// </summary>
     public class SteamMultiResponseFormatPacket : SteamPacket
     {
-        private SteamPacket _firstPacket;
-        
         public SteamMultiResponseFormatPacket(byte[] rawPacket) : base(rawPacket)
         {
             if (Header != SteamPacketType.Multi)
             {
-                throw new Exception("Not multi package response");
+                throw new Exception("Not a multi-package response");
             }
-
+            var br = new ByteReader();
+            
             var _raw = rawPacket.ToList<byte>() as IList<byte>;
-            var IsCompressed = GetMSB(_raw);
-            ID = ExtractLong<int>(ref _raw);
-            Total = ExtractByte<int>(ref _raw);
-            Number = ExtractByte<int>(ref _raw);
-            Size = ExtractShort<short>(ref _raw);
+            var IsCompressed = br.GetMostSignificantBit(_raw.ToArray());
+            ID = br.ExtractLong<int>(ref _raw);
+            Total = br.ExtractByte<int>(ref _raw);
+            Number = br.ExtractByte<int>(ref _raw);
+            Size = br.ExtractShort<short>(ref _raw);
         }
 
+        /// <summary>
+        /// Copy constructor (just defers to base class)
+        /// </summary>
+        /// <param name="firstPacket"></param>
         public SteamMultiResponseFormatPacket(SteamPacket firstPacket) : base(firstPacket)
         {
 

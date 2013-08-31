@@ -6,7 +6,8 @@ namespace GameQueryNet.Console
     {
         static void Main(string[] args)
         {
-            CanDoSomething();
+            while (!CanDoSomething().IsCompleted)
+            { ; }
             System.Console.Read();
         }
 

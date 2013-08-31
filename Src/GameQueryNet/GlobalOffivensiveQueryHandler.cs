@@ -25,14 +25,14 @@ namespace GameQueryNet
 
                 var firstPacket = new SteamPacket(receivedBytes);
 
-                // Deal with simple response
+                /* Deal with simple response */
                 if (firstPacket.Header == SteamPacketType.Simple)
                 {
                     var simple = new SteamSimpleResponseFormatPacket(firstPacket);
                     response = HandleSimpleResponse(simple);
                 }
 
-                // Deal with multi packet response
+                /* Deal with multi packet response */
                 else if (firstPacket.Header == SteamPacketType.Multi)
                 {
                     var multi = new SteamMultiResponseFormatPacket(firstPacket);
@@ -68,36 +68,51 @@ namespace GameQueryNet
             return requestBytes.ToArray();
         }
 
+        /// <summary>
+        /// Handle the simple response (synchronously)
+        /// </summary>
+        /// <param name="steamPacket">The first and only packet that will come in</param>
+        /// <returns>A response in the form of a QueryResponse</returns>
         private GlobalOffensiveStatsQueryResponse HandleSimpleResponse(SteamSimpleResponseFormatPacket steamPacket)
         {
             var response = new GlobalOffensiveStatsQueryResponse();
 
-            //response.Raw = ExtractString<string>(ref receivedBytes, false);
             response.Raw = steamPacket.RawPacket;
             var payload = steamPacket.Payload;
 
-            response.Protocol = steamPacket.ExtractByte<string>(ref payload);
-            response.Name = steamPacket.ExtractString<string>(ref payload);
-            response.Map = steamPacket.ExtractString<string>(ref payload);
-            response.Folder = steamPacket.ExtractString<string>(ref payload);
-            response.Game = steamPacket.ExtractString<string>(ref payload);
-            response.Id = steamPacket.ExtractShort<int>(ref payload);
-            response.Players = steamPacket.ExtractByte<int>(ref payload);
+            var br = new ByteReader();
+
+            response.Protocol = br.ExtractByte<string>(ref payload);
+            response.Name = br.ExtractString<string>(ref payload);
+            response.Map = br.ExtractString<string>(ref payload);
+            response.Folder = br.ExtractString<string>(ref payload);
+            response.Game = br.ExtractString<string>(ref payload);
+            response.Id = br.ExtractShort<int>(ref payload);
+            response.Players = br.ExtractByte<int>(ref payload);
 
             return response;
         }
 
+        /// <summary>
+        /// Handle the multi packet response
+        /// </summary>
+        /// <param name="updClient">the udpClient that will receive the results</param>
+        /// <param name="initialPacket">the first packet that came</param>
+        /// <returns>Task with Response as type parameter</returns>
         private async Task<GlobalOffensiveStatsQueryResponse> HandleMultiPacketResponse(UdpClient updClient, SteamMultiResponseFormatPacket initialPacket)
         {
             var response = new GlobalOffensiveStatsQueryResponse();
             
             int numberOfReceivedPackets = 1;
-            var receivedPackets = new List<UdpReceiveResult>();
+            var receivedPackets = new List<byte[]>();
+            receivedPackets.Add(initialPacket.RawPacket); // add initial packet to 
 
+            /* read all the packets or if some packets were dropped then timeout should occur
+            use CancellationTokenSource for this */
             while (numberOfReceivedPackets <= initialPacket.Total)
             {
                 var udpReceiveResult = await updClient.ReceiveAsync();
-                receivedPackets.Add(udpReceiveResult);
+                receivedPackets.Add(udpReceiveResult.Buffer);
             }
 
             /* TODO: order the packets */
